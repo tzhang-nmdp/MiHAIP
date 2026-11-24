@@ -75,6 +75,7 @@ public class ProcessVcf {
             System.out.println("data is not number "+ detail[9]);
         }
         gene.addPos(DNAchange, gene.getAlt());
+        gene.setStrandFromHgvsC(detail[9]);
         
         Pattern pattern = Pattern.compile("ENST(.)*p.");
         Matcher matcher = pattern.matcher(s);
@@ -106,6 +107,7 @@ public class ProcessVcf {
                 Transcript newGene = new Transcript(transcript);
                 newGene.setInfo(gene);
                 newGene.addPos(DNAchange, gene.getAlt());
+                newGene.setStrandFromHgvsC(detail[3]);
                 geneList.add(newGene);
             }
 
