@@ -16,7 +16,7 @@ public class ImportData {
      static String geneSymbol = "";
      static String description = "";
      
-     static String idPattern = ">ENST\\d+\\.\\d";
+     static String idPattern = ">ENST\\d+\\.\\d+";
      static String chromePattern = "GRCh38:(\\d+|\\w+)";
      static String geneTypePattern = "gene_symbol:\\w*";
      static String geneDescription = "description:(\\w|\\s)+";

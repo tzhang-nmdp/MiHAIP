@@ -98,6 +98,9 @@ public class GenerateOutput {
 
     private void processGene(Transcript gene) {
         String dna = DatabaseUtil.getSequence(gene.transcriptID);
+        if(dna == null || dna.isEmpty()){
+            System.err.println("WARNING: no CDS sequence found for transcript " + gene.transcriptID + ", variants skipped");
+        }
         Iterator<Integer> it = gene.change.keySet().iterator();
         StringBuilder sbRef = new StringBuilder(dna);
         StringBuilder sbAlt = new StringBuilder(dna);
@@ -105,16 +108,23 @@ public class GenerateOutput {
         List<Integer> aachangePos = new ArrayList<>();
         List<Integer> DNAchangePos = new ArrayList<>();
         changePos.append(" ,");
+        //VCF alleles are on the forward genomic strand, the CDS is in transcript orientation
+        String refNT = gene.ref;
+        String altNT = gene.alt;
+        if(gene.minusStrand){
+            refNT = Transcript.complement(refNT);
+            altNT = Transcript.complement(altNT);
+        }
         while (it.hasNext()) {
             int i = it.next();
             if(i < dna.length()){
                 String mid = dna.substring(i-1, i);
                 if(replaceTwo){
-                    sbRef.replace(i-1, i, gene.ref.toLowerCase());
+                    sbRef.replace(i-1, i, refNT.toLowerCase());
                 }else {
                     sbRef.replace(i-1, i, mid.toLowerCase());
                 }
-                sbAlt.replace(i-1, i, gene.alt.toLowerCase());
+                sbAlt.replace(i-1, i, altNT.toLowerCase());
                 changePos.append(i);
                 DNAchangePos.add(i);
                 changePos.append(",");
@@ -157,9 +167,16 @@ public class GenerateOutput {
             metaDataWriter.print(",");
             metaDataWriter.print(gene.pos);
             metaDataWriter.print(",");
-            metaDataWriter.print(sbRef.toString().charAt(DNAchangePos.get(i)-1));
+            //meta data keeps genomic (VCF strand) bases, they are used for the frequency lookup
+            String metaRef = sbRef.toString().substring(DNAchangePos.get(i)-1, DNAchangePos.get(i));
+            String metaAlt = sbAlt.toString().substring(DNAchangePos.get(i)-1, DNAchangePos.get(i));
+            if(gene.minusStrand){
+                metaRef = Transcript.complement(metaRef);
+                metaAlt = Transcript.complement(metaAlt);
+            }
+            metaDataWriter.print(metaRef);
             metaDataWriter.print(",");
-            metaDataWriter.print(sbAlt.toString().charAt(DNAchangePos.get(i)-1));
+            metaDataWriter.print(metaAlt);
             metaDataWriter.print(",");
             metaDataWriter.print(DNAchangePos.get(i));
             metaDataWriter.print(",");
